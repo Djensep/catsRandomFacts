@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [fact, setFact] = useState("");
+    const [catImage, setCatImage] = useState("");
+    const [loading, setLoading] = useState(false);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const getCatData = async () => {
+        try {
+            setLoading(true);
+            const [factRes, imageRes] = await Promise.all([
+                axios.get("https://catfact.ninja/fact"),
+                axios.get("https://api.thecatapi.com/v1/images/search"),
+            ]);
+
+            setFact(factRes.data.fact);
+            const image = imageRes.data[0];
+            setCatImage(image.url);
+        } catch (error) {
+            console.error("Ошибка:", error);
+            setFact("Не удалось получить факт 😿");
+            setCatImage("");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="container">
+            <div className="card">
+                <div className="left">
+                    {catImage ? <img src={catImage} alt="cat" /> : <div className="placeholder">Нет изображения</div>}
+                </div>
+                <div className="right">
+                    <h2>🐱 Случайный факт</h2>
+                    <p>{loading ? "Загрузка..." : fact}</p>
+                    <button onClick={getCatData}>Получить новый факт 🐾</button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
-export default App
+export default App;
